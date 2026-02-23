@@ -9,7 +9,7 @@ A beautiful shared notes app for couples to manage lists together.
 - ✅ Check off completed items
 - 📸 Add photos to completed items
 - 💬 Add comments and notes to completions
-- 🔒 Simple password protection (no complex auth needed)
+- � No authentication needed - direct access
 - ☁️ **Cloud persistence with Supabase** - Access from any device!
 
 ## Getting Started
@@ -33,8 +33,6 @@ npm run dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-5. Login with the password: `leslistesdeleilaetmatt`
-
 ## How to Use
 
 1. **Create Lists**: Click "Nouvelle Liste" to create a new list with a custom emoji and color
@@ -49,11 +47,6 @@ npm run dev
 - **Storage**: Supabase Storage bucket `list-images`
 - **Auth**: Simple password-based session cookies
 - **Tech Stack**: Next.js 14, React, TailwindCSS, TypeScript, Supabase
-
-## Password
-
-The app uses a simple password protection system. Both users can access with the same password:
-`leslistesdeleilaetmatt`
 
 ## Cloud Access
 

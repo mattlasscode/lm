@@ -1,16 +1,8 @@
-import { redirect } from 'next/navigation';
-import { verifySession } from '@/lib/auth';
 import { getLists } from './actions';
 import ListsGrid from '@/components/ListsGrid';
 import Header from '@/components/Header';
 
 export default async function HomePage() {
-  const isAuthenticated = await verifySession();
-  
-  if (!isAuthenticated) {
-    redirect('/login');
-  }
-
   const lists = await getLists();
 
   return (

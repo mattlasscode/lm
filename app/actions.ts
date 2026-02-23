@@ -2,18 +2,8 @@
 
 import { createServerClient } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
-import { verifySession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
-
-async function requireAuth() {
-  const isAuthenticated = await verifySession();
-  if (!isAuthenticated) {
-    redirect('/login');
-  }
-}
 
 export async function getLists() {
-  await requireAuth();
   const supabase = createServerClient();
   const { data: lists, error } = await supabase
     .from('lists')
@@ -25,7 +15,6 @@ export async function getLists() {
 }
 
 export async function getListWithItems(listId: number) {
-  await requireAuth();
   const supabase = createServerClient();
   
   const { data: list, error: listError } = await supabase
@@ -61,7 +50,6 @@ export async function getListWithItems(listId: number) {
 }
 
 export async function createList(formData: FormData) {
-  await requireAuth();
   const supabase = createServerClient();
   const name = formData.get('name') as string;
   const emoji = formData.get('emoji') as string;
@@ -80,7 +68,6 @@ export async function createList(formData: FormData) {
 }
 
 export async function updateList(listId: number, formData: FormData) {
-  await requireAuth();
   const supabase = createServerClient();
   const name = formData.get('name') as string;
   const emoji = formData.get('emoji') as string;
@@ -98,7 +85,6 @@ export async function updateList(listId: number, formData: FormData) {
 }
 
 export async function deleteList(listId: number) {
-  await requireAuth();
   const supabase = createServerClient();
   const { error } = await supabase
     .from('lists')
@@ -110,7 +96,6 @@ export async function deleteList(listId: number) {
 }
 
 export async function createItem(listId: number, text: string) {
-  await requireAuth();
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from('items')
@@ -125,7 +110,6 @@ export async function createItem(listId: number, text: string) {
 }
 
 export async function toggleItemComplete(itemId: number, listId: number) {
-  await requireAuth();
   const supabase = createServerClient();
   
   const { data: item, error: fetchError } = await supabase
@@ -150,7 +134,6 @@ export async function toggleItemComplete(itemId: number, listId: number) {
 }
 
 export async function deleteItem(itemId: number, listId: number) {
-  await requireAuth();
   const supabase = createServerClient();
   const { error } = await supabase
     .from('items')
@@ -162,7 +145,6 @@ export async function deleteItem(itemId: number, listId: number) {
 }
 
 export async function addCompletion(itemId: number, listId: number, formData: FormData) {
-  await requireAuth();
   const supabase = createServerClient();
   const comment = formData.get('comment') as string;
   const imageUrl = formData.get('imageUrl') as string;
@@ -181,7 +163,6 @@ export async function addCompletion(itemId: number, listId: number, formData: Fo
 }
 
 export async function uploadImage(formData: FormData) {
-  await requireAuth();
   const supabase = createServerClient();
   const file = formData.get('file') as File;
   

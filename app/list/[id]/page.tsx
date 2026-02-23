@@ -1,16 +1,9 @@
 import { redirect } from 'next/navigation';
-import { verifySession } from '@/lib/auth';
 import { getListWithItems } from '@/app/actions';
 import ListDetail from '@/components/ListDetail';
 import Header from '@/components/Header';
 
 export default async function ListPage({ params }: { params: { id: string } }) {
-  const isAuthenticated = await verifySession();
-  
-  if (!isAuthenticated) {
-    redirect('/login');
-  }
-
   const listId = parseInt(params.id);
   const data = await getListWithItems(listId);
 
