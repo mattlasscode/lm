@@ -7,6 +7,7 @@ import { createItem, toggleItemComplete, deleteItem, addCompletion, uploadImage 
 
 export default function ListDetail({ list, items }: { list: any; items: any[] }) {
   const [newItemText, setNewItemText] = useState('');
+  const [selectedUser, setSelectedUser] = useState<'Matt' | 'Leila'>('Matt');
   const [showCompletionModal, setShowCompletionModal] = useState<number | null>(null);
   const [completionComment, setCompletionComment] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -17,7 +18,7 @@ export default function ListDetail({ list, items }: { list: any; items: any[] })
     e.preventDefault();
     if (!newItemText.trim()) return;
     
-    await createItem(list.id, newItemText);
+    await createItem(list.id, newItemText, selectedUser);
     setNewItemText('');
   }
 
@@ -98,21 +99,47 @@ export default function ListDetail({ list, items }: { list: any; items: any[] })
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg p-6">
-        <form onSubmit={handleAddItem} className="flex gap-2">
-          <input
-            type="text"
-            value={newItemText}
-            onChange={(e) => setNewItemText(e.target.value)}
-            placeholder="Ajouter un élément..."
-            className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-500 focus:outline-none"
-          />
-          <button
-            type="submit"
-            className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Ajouter
-          </button>
+        <form onSubmit={handleAddItem} className="space-y-3">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedUser('Matt')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                selectedUser === 'Matt'
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Matt
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedUser('Leila')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                selectedUser === 'Leila'
+                  ? 'bg-pink-500 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              Leila
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newItemText}
+              onChange={(e) => setNewItemText(e.target.value)}
+              placeholder="Ajouter un élément..."
+              className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-pink-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Ajouter
+            </button>
+          </div>
         </form>
       </div>
 
@@ -129,7 +156,16 @@ export default function ListDetail({ list, items }: { list: any; items: any[] })
                   onClick={() => handleToggleComplete(item.id)}
                   className="w-6 h-6 rounded-full border-2 border-gray-300 hover:border-pink-500 transition-colors flex-shrink-0"
                 />
-                <span className="flex-1 text-gray-800">{item.text}</span>
+                <div className="flex-1">
+                  <span className="text-gray-800">{item.text}</span>
+                  {item.created_by && (
+                    <span className={`ml-2 text-xs px-2 py-1 rounded-full ${
+                      item.created_by === 'Matt' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
+                    }`}>
+                      {item.created_by}
+                    </span>
+                  )}
+                </div>
                 <button
                   onClick={() => handleDeleteItem(item.id)}
                   className="opacity-0 group-hover:opacity-100 p-2 hover:bg-red-100 rounded-lg transition-all"
@@ -155,7 +191,16 @@ export default function ListDetail({ list, items }: { list: any; items: any[] })
                   >
                     <Check className="w-4 h-4 text-white" />
                   </button>
-                  <span className="flex-1 text-gray-800 line-through">{item.text}</span>
+                  <div className="flex-1">
+                    <span className="text-gray-800 line-through">{item.text}</span>
+                    {item.created_by && (
+                      <span className={`ml-2 text-xs px-2 py-1 rounded-full ${
+                        item.created_by === 'Matt' ? 'bg-blue-100 text-blue-700' : 'bg-pink-100 text-pink-700'
+                      }`}>
+                        {item.created_by}
+                      </span>
+                    )}
+                  </div>
                   <button
                     onClick={() => handleDeleteItem(item.id)}
                     className="p-2 hover:bg-red-100 rounded-lg transition-all"

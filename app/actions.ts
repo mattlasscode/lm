@@ -95,11 +95,11 @@ export async function deleteList(listId: number) {
   revalidatePath('/');
 }
 
-export async function createItem(listId: number, text: string) {
+export async function createItem(listId: number, text: string, createdBy?: string) {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from('items')
-    .insert({ list_id: listId, text })
+    .insert({ list_id: listId, text, created_by: createdBy || null })
     .select()
     .single();
   
@@ -184,6 +184,95 @@ export async function uploadImage(formData: FormData) {
   
   const { data: { publicUrl } } = supabase.storage
     .from('list-images')
+    .getPublicUrl(filename);
+  
+  return publicUrl;
+}
+
+// Slovak learning actions
+export async function getTodaysSlovakWord() {
+  const supabase = createServerClient();
+  const today = new Date().toISOString().split('T')[0];
+  
+  const { data, error } = await supabase
+    .from('slovak_words')
+    .select('*')
+    .eq('date', today)
+    .single();
+  
+  if (error && error.code !== 'PGRST116') throw error;
+  return data;
+}
+
+export async function getAllSlovakWords() {
+  const supabase = createServerClient();
+  const { data, error } = await supabase
+    .from('slovak_words')
+    .select('*')
+    .order('date', { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createSlovakWord(formData: FormData) {
+  const supabase = createServerClient();
+  const wordSlovak = formData.get('wordSlovak') as string;
+  const wordEnglish = formData.get('wordEnglish') as string;
+  const date = formData.get('date') as string;
+  const notes = formData.get('notes') as string;
+  
+  const { data, error } = await supabase
+    .from('slovak_words')
+    .insert({
+      word_slovak: wordSlovak,
+      word_english: wordEnglish,
+      date: date || new Date().toISOString().split('T')[0],
+      notes: notes || null
+    })
+    .select()
+    .single();
+  
+  if (error) throw error;
+  revalidatePath('/slovak');
+  return data.id;
+}
+
+export async function updateSlovakWordAudio(wordId: number, person: 'matt' | 'leila', audioUrl: string) {
+  const supabase = createServerClient();
+  const field = person === 'matt' ? 'matt_audio_url' : 'leila_audio_url';
+  
+  const { error } = await supabase
+    .from('slovak_words')
+    .update({ [field]: audioUrl })
+    .eq('id', wordId);
+  
+  if (error) throw error;
+  revalidatePath('/slovak');
+}
+
+export async function uploadAudio(formData: FormData) {
+  const supabase = createServerClient();
+  const file = formData.get('file') as File;
+  
+  if (!file) {
+    throw new Error('No file provided');
+  }
+  
+  const filename = `${Date.now()}-${file.name}`;
+  const bytes = await file.arrayBuffer();
+  
+  const { data, error } = await supabase.storage
+    .from('audio-recordings')
+    .upload(filename, bytes, {
+      contentType: file.type,
+      upsert: false
+    });
+  
+  if (error) throw error;
+  
+  const { data: { publicUrl } } = supabase.storage
+    .from('audio-recordings')
     .getPublicUrl(filename);
   
   return publicUrl;

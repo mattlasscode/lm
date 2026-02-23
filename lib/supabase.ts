@@ -31,6 +31,7 @@ export type Item = {
   text: string;
   completed: boolean;
   completed_at: string | null;
+  created_by: string | null;
   created_at: string;
 };
 
@@ -39,5 +40,16 @@ export type Completion = {
   item_id: number;
   comment: string | null;
   image_url: string | null;
+  created_at: string;
+};
+
+export type SlovakWord = {
+  id: number;
+  word_slovak: string;
+  word_english: string;
+  date: string;
+  matt_audio_url: string | null;
+  leila_audio_url: string | null;
+  notes: string | null;
   created_at: string;
 };
