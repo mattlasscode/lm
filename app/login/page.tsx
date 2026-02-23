@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Heart } from 'lucide-react';
 
 export default function LoginPage() {
   const [password, setPassword] = useState('');
@@ -34,7 +33,7 @@ export default function LoginPage() {
           <div className="text-center space-y-3">
             <div className="flex justify-center">
               <div className="bg-gradient-to-br from-pink-500 to-purple-600 p-4 rounded-2xl">
-                <Heart className="w-12 h-12 text-white fill-white" />
+                <span className="text-5xl">🐸</span>
               </div>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">

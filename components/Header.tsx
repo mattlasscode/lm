@@ -1,6 +1,6 @@
 'use client';
 
-import { Heart, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Header() {
@@ -14,7 +14,7 @@ export default function Header() {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
           <div className="bg-gradient-to-br from-pink-500 to-purple-600 p-2 rounded-xl">
-            <Heart className="w-6 h-6 text-white fill-white" />
+            <span className="text-2xl">🐸</span>
           </div>
           <div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">

@@ -1,6 +1,6 @@
 'use server';
 
-import db from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { revalidatePath } from 'next/cache';
 import { verifySession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
@@ -14,27 +14,46 @@ async function requireAuth() {
 
 export async function getLists() {
   await requireAuth();
-  const lists = db.prepare('SELECT * FROM lists ORDER BY created_at DESC').all();
-  return lists;
+  const { data: lists, error } = await supabase
+    .from('lists')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  return lists || [];
 }
 
 export async function getListWithItems(listId: number) {
   await requireAuth();
-  const list = db.prepare('SELECT * FROM lists WHERE id = ?').get(listId);
-  const items = db.prepare(`
-    SELECT * FROM items 
-    WHERE list_id = ? 
-    ORDER BY completed ASC, created_at DESC
-  `).all(listId);
   
-  const itemsWithCompletions = items.map((item: any) => {
-    const completions = db.prepare(`
-      SELECT * FROM completions 
-      WHERE item_id = ? 
-      ORDER BY created_at DESC
-    `).all(item.id);
-    return { ...item, completions };
-  });
+  const { data: list, error: listError } = await supabase
+    .from('lists')
+    .select('*')
+    .eq('id', listId)
+    .single();
+  
+  if (listError) throw listError;
+  
+  const { data: items, error: itemsError } = await supabase
+    .from('items')
+    .select('*')
+    .eq('list_id', listId)
+    .order('completed', { ascending: true })
+    .order('created_at', { ascending: false });
+  
+  if (itemsError) throw itemsError;
+  
+  const itemsWithCompletions = await Promise.all(
+    (items || []).map(async (item: any) => {
+      const { data: completions } = await supabase
+        .from('completions')
+        .select('*')
+        .eq('item_id', item.id)
+        .order('created_at', { ascending: false });
+      
+      return { ...item, completions: completions || [] };
+    })
+  );
   
   return { list, items: itemsWithCompletions };
 }
@@ -45,13 +64,16 @@ export async function createList(formData: FormData) {
   const emoji = formData.get('emoji') as string;
   const color = formData.get('color') as string;
   
-  const result = db.prepare(`
-    INSERT INTO lists (name, emoji, color) 
-    VALUES (?, ?, ?)
-  `).run(name, emoji, color);
+  const { data, error } = await supabase
+    .from('lists')
+    .insert({ name, emoji, color })
+    .select()
+    .single();
+  
+  if (error) throw error;
   
   revalidatePath('/');
-  return result.lastInsertRowid;
+  return data.id;
 }
 
 export async function updateList(listId: number, formData: FormData) {
@@ -60,11 +82,12 @@ export async function updateList(listId: number, formData: FormData) {
   const emoji = formData.get('emoji') as string;
   const color = formData.get('color') as string;
   
-  db.prepare(`
-    UPDATE lists 
-    SET name = ?, emoji = ?, color = ?, updated_at = CURRENT_TIMESTAMP 
-    WHERE id = ?
-  `).run(name, emoji, color, listId);
+  const { error } = await supabase
+    .from('lists')
+    .update({ name, emoji, color, updated_at: new Date().toISOString() })
+    .eq('id', listId);
+  
+  if (error) throw error;
   
   revalidatePath('/');
   revalidatePath(`/list/${listId}`);
@@ -72,37 +95,61 @@ export async function updateList(listId: number, formData: FormData) {
 
 export async function deleteList(listId: number) {
   await requireAuth();
-  db.prepare('DELETE FROM lists WHERE id = ?').run(listId);
+  const { error } = await supabase
+    .from('lists')
+    .delete()
+    .eq('id', listId);
+  
+  if (error) throw error;
   revalidatePath('/');
 }
 
 export async function createItem(listId: number, text: string) {
   await requireAuth();
-  const result = db.prepare(`
-    INSERT INTO items (list_id, text) 
-    VALUES (?, ?)
-  `).run(listId, text);
+  const { data, error } = await supabase
+    .from('items')
+    .insert({ list_id: listId, text })
+    .select()
+    .single();
+  
+  if (error) throw error;
   
   revalidatePath(`/list/${listId}`);
-  return result.lastInsertRowid;
+  return data.id;
 }
 
 export async function toggleItemComplete(itemId: number, listId: number) {
   await requireAuth();
-  const item = db.prepare('SELECT completed FROM items WHERE id = ?').get(itemId) as any;
   
-  db.prepare(`
-    UPDATE items 
-    SET completed = ?, completed_at = ? 
-    WHERE id = ?
-  `).run(item.completed ? 0 : 1, item.completed ? null : new Date().toISOString(), itemId);
+  const { data: item, error: fetchError } = await supabase
+    .from('items')
+    .select('completed')
+    .eq('id', itemId)
+    .single();
+  
+  if (fetchError) throw fetchError;
+  
+  const { error } = await supabase
+    .from('items')
+    .update({
+      completed: !item.completed,
+      completed_at: item.completed ? null : new Date().toISOString()
+    })
+    .eq('id', itemId);
+  
+  if (error) throw error;
   
   revalidatePath(`/list/${listId}`);
 }
 
 export async function deleteItem(itemId: number, listId: number) {
   await requireAuth();
-  db.prepare('DELETE FROM items WHERE id = ?').run(itemId);
+  const { error } = await supabase
+    .from('items')
+    .delete()
+    .eq('id', itemId);
+  
+  if (error) throw error;
   revalidatePath(`/list/${listId}`);
 }
 
@@ -111,10 +158,15 @@ export async function addCompletion(itemId: number, listId: number, formData: Fo
   const comment = formData.get('comment') as string;
   const imageUrl = formData.get('imageUrl') as string;
   
-  db.prepare(`
-    INSERT INTO completions (item_id, comment, image_url) 
-    VALUES (?, ?, ?)
-  `).run(itemId, comment || null, imageUrl || null);
+  const { error } = await supabase
+    .from('completions')
+    .insert({
+      item_id: itemId,
+      comment: comment || null,
+      image_url: imageUrl || null
+    });
+  
+  if (error) throw error;
   
   revalidatePath(`/list/${listId}`);
 }
@@ -127,19 +179,21 @@ export async function uploadImage(formData: FormData) {
     throw new Error('No file provided');
   }
   
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-  
-  const fs = require('fs').promises;
-  const path = require('path');
-  
-  const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-  await fs.mkdir(uploadsDir, { recursive: true });
-  
   const filename = `${Date.now()}-${file.name}`;
-  const filepath = path.join(uploadsDir, filename);
+  const bytes = await file.arrayBuffer();
   
-  await fs.writeFile(filepath, buffer);
+  const { data, error } = await supabase.storage
+    .from('list-images')
+    .upload(filename, bytes, {
+      contentType: file.type,
+      upsert: false
+    });
   
-  return `/uploads/${filename}`;
+  if (error) throw error;
+  
+  const { data: { publicUrl } } = supabase.storage
+    .from('list-images')
+    .getPublicUrl(filename);
+  
+  return publicUrl;
 }

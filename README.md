@@ -1,4 +1,4 @@
-# Nos Listes - Leila & Matt 💕
+# Nos Listes - Leila & Matt �
 
 A beautiful shared notes app for couples to manage lists together.
 
@@ -10,23 +10,30 @@ A beautiful shared notes app for couples to manage lists together.
 - 📸 Add photos to completed items
 - 💬 Add comments and notes to completions
 - 🔒 Simple password protection (no complex auth needed)
-- 💾 SQLite database for data persistence
+- ☁️ **Cloud persistence with Supabase** - Access from any device!
 
 ## Getting Started
+
+### First Time Setup
 
 1. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Run the development server:
+2. **Set up Supabase** (IMPORTANT):
+   - See `SUPABASE_SETUP.md` for detailed instructions
+   - Run the SQL migration in your Supabase dashboard
+   - Verify tables and storage bucket are created
+
+3. Run the development server:
 ```bash
 npm run dev
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-4. Login with the password: `leslistesdeleilaetmatt`
+5. Login with the password: `leslistesdeleilaetmatt`
 
 ## How to Use
 
@@ -36,17 +43,26 @@ npm run dev
 4. **Add Details**: When completing an item, you can add photos and comments about your experience
 5. **Manage Items**: Hover over items to see the delete button
 
-## Tech Stack
+## Project Structure
 
-- **Framework**: Next.js 14 with App Router
-- **Styling**: TailwindCSS
-- **Database**: SQLite with better-sqlite3
-- **Icons**: Lucide React
-- **Language**: TypeScript
+- **Database**: Supabase PostgreSQL (cloud-hosted)
+- **Storage**: Supabase Storage bucket `list-images`
+- **Auth**: Simple password-based session cookies
+- **Tech Stack**: Next.js 14, React, TailwindCSS, TypeScript, Supabase
 
 ## Password
 
 The app uses a simple password protection system. Both users can access with the same password:
 `leslistesdeleilaetmatt`
 
-Enjoy managing your shared lists! 💖
+## Cloud Access
+
+With Supabase, your data is stored in the cloud, which means:
+- Access from **any device** (phone, tablet, computer)
+- **Real-time sync** between devices
+- **Automatic backups** - never lose your data
+- **No local storage limits**
+
+Both you and Leila can access the same lists from different devices simultaneously!
+
+Enjoy managing your shared lists together! 🐸💕 
